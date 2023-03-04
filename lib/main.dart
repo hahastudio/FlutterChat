@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/services/local_storage_service.dart';
 
-void main() {
+void main() async {
+  await LocalStorageService().init();
   runApp(const MyApp());
 }
 
