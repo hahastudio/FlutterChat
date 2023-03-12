@@ -4,13 +4,6 @@ import '../models/models.dart';
 
 enum ChatStatus { initial, loading, success, failure }
 
-extension ChatStatusX on ChatStatus {
-  bool get isLoadingOrSuccess => [
-    ChatStatus.loading,
-    ChatStatus.success,
-  ].contains(this);
-}
-
 class ChatState extends Equatable {
   const ChatState({
     this.status = ChatStatus.initial,

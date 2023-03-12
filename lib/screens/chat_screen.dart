@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -154,12 +152,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (state.status == ChatStatus.loading)
                         return;
                       var newMessage = ConversationMessage('user', _textEditingController.text);
-                      if (conversation.messages.last.role == 'user') {
+                      _textEditingController.text = '';
+                      if (conversation.messages.length > 1 && conversation.messages.last.role == 'user') {
                         conversation.messages.last = newMessage;
                       } else {
                         conversation.messages.add(newMessage);
                       }
-
+                      conversation.lastUpdated = DateTime.now();
                       BlocProvider.of<ChatBloc>(context).add(
                         ChatSubmitted(conversation)
                       );

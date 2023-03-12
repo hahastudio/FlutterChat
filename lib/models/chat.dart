@@ -54,7 +54,7 @@ class ChatResponseChoice {
   static ChatResponseChoice fromJson(Map<String, dynamic> json) =>
       ChatResponseChoice(json['index'],
           ChatMessage.fromJson(json['message']),
-          json['finish_reason']
+          json['finish_reason'] ?? ''
       );
 
   static List<ChatResponseChoice> fromListJson(List json) {

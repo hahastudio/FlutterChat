@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:core';
+import 'dart:developer';
 
 import 'package:flutter_chat/models/chat.dart';
 import 'package:flutter_chat/services/local_storage_service.dart';
@@ -24,9 +25,9 @@ class OpenAiApi {
     }
 
     var request = ChatRequest(messages);
-    print('[OpenAiApi] ChatCompletion requested');
+    log('[OpenAiApi] ChatCompletion requested');
     var response = await httpClient.post(uri, headers: headers, body: jsonEncode(request.toJson()));
-    print('[OpenAiApi] ChatCompletion responded');
+    log('[OpenAiApi] ChatCompletion responded');
 
     if (response.statusCode != 200) {
       String errorMessage = 'Error connecting OpenAI: ';

@@ -20,14 +20,13 @@ class ChatService {
   }
 
   Future updateConversation(Conversation conversation) async {
-    conversation.lastUpdated = DateTime.now();
     await LocalStorageService().setConversationJsonById(conversation.id, jsonEncode(conversation.toJson()));
     await _upsertConversationList(conversation);
   }
 
-  Future removeConversation(Conversation conversation) async {
-    await LocalStorageService().removeConversationJsonById(conversation.id);
-    await _removeConversationFromList(conversation);
+  Future removeConversationById(String id) async {
+    await LocalStorageService().removeConversationJsonById(id);
+    await _removeConversationFromListById(id);
   }
 
   List<ConversationIndex> getConversationList() {
@@ -39,12 +38,13 @@ class ChatService {
     ConversationIndex c = ConversationIndex.fromConversation(conversation);
     conversationList.removeWhere((e) => e.id == conversation.id);
     conversationList.insert(0, c);
+    conversationList.sort((a,b) => b.lastUpdated.compareTo(a.lastUpdated));
     LocalStorageService().conversationListJson = jsonEncode(conversationList.map((i) => i.toJson()).toList());
   }
 
-  Future _removeConversationFromList(Conversation conversation) async {
+  Future _removeConversationFromListById(String id) async {
     var conversationList = getConversationList();
-    conversationList.removeWhere((e) => e.id == conversation.id);
+    conversationList.removeWhere((e) => e.id == id);
     LocalStorageService().conversationListJson = jsonEncode(conversationList.map((i) => i.toJson()).toList());
   }
 
@@ -64,6 +64,7 @@ class ChatService {
       conversation.messages.last.isError = true;
     }
 
+    conversation.lastUpdated = DateTime.now();
     updateConversation(conversation);
 
     return conversation;

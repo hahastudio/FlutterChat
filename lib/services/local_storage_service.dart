@@ -41,7 +41,7 @@ class LocalStorageService {
 
   set conversationListJson(String value) {
     (() async {
-      await _prefs.setString(conversationListJson, value);
+      await _prefs.setString(storeConversationList, value);
     })();
   }
 

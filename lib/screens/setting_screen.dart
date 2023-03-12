@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat/services/local_storage_service.dart';
 import 'package:settings_ui/settings_ui.dart';
+
+import '../services/local_storage_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

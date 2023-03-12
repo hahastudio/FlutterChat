@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
@@ -10,8 +11,8 @@ class SafeHttpClient extends http.BaseClient {
       _inner = RetryClient(httpClient,
         when: (response) => response.statusCode >= 500,
         whenError: (dynamic error, StackTrace stackTrace) {
-          print(error);
-          print(stackTrace);
+          log(error);
+          log(stackTrace.toString());
           return true;
         }
       );

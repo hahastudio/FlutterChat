@@ -1,3 +1,6 @@
+import 'package:equatable/equatable.dart';
+import 'package:uuid/uuid.dart';
+
 import './chat.dart';
 import '../util/type_converter.dart';
 
@@ -19,15 +22,23 @@ class Conversation {
         this.error = ''
       }) : lastUpdated = lastUpdated ?? DateTime.now();
 
+  static Conversation create() =>
+    Conversation(
+      const Uuid().v4(),
+      '',
+      '',
+      []
+    );
+
   static Conversation fromJson(Map<String, dynamic> json) =>
-      Conversation(
-          json['id'],
-          json['title'],
-          json['system_message'],
-          ConversationMessage.fromListJson(json['messages']),
-          lastUpdated: DateTime.fromMillisecondsSinceEpoch(doubleToInt(json['last_updated']) * 1000),
-          error: json['error']
-      );
+    Conversation(
+      json['id'],
+      json['title'],
+      json['system_message'],
+      ConversationMessage.fromListJson(json['messages']),
+      lastUpdated: DateTime.fromMillisecondsSinceEpoch(doubleToInt(json['last_updated']) * 1000),
+      error: json['error']
+    );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -70,10 +81,10 @@ class ConversationMessage {
   };
 }
 
-class ConversationIndex {
+class ConversationIndex extends Equatable {
   final String id;
-  String title;
-  DateTime lastUpdated;
+  final String title;
+  final DateTime lastUpdated;
 
   ConversationIndex(
       this.id,
@@ -81,6 +92,9 @@ class ConversationIndex {
       {
         DateTime? lastUpdated
       }) : lastUpdated = lastUpdated ?? DateTime.now();
+
+  @override
+  List<Object> get props => [id, title];
 
   static ConversationIndex fromConversation(Conversation c) =>
       ConversationIndex(c.id, c.title, lastUpdated: c.lastUpdated);
