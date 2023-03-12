@@ -1,16 +1,39 @@
 # Flutter Chat
 
-A new Flutter project which communicate with OpenAI API
+A new Flutter project which communicates with [OpenAI API](https://platform.openai.com/).
 
-## Getting Started
+## Screenshots
 
-This project is a starting point for a Flutter application.
+![Screenshot 1](/document/readme_screenshot_01.png)
+![Screenshot 2](/document/readme_screenshot_02.png)
 
-A few resources to get you started if this is your first Flutter project:
+### Architecture
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+It uses [Flutter framework](https://flutter.dev/), and uses [BLoC pattern](https://pub.dev/packages/flutter_bloc) to implement state management.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## How to build
+
+Get Flutter package:
+
+```
+flutter pub get
+```
+
+Build apk:
+
+```
+flutter build apk
+```
+
+## References
+
+Mainly used Flutter packages:
+
+- [shared_preferences](https://pub.dev/packages/shared_preferences) to store app settings & conversations
+- [flutter_bloc](https://pub.dev/packages/flutter_bloc) for state management
+- [settings_ui](https://pub.dev/packages/settings_ui) for setting page
+- [flutter_spinkit](https://pub.dev/packages/flutter_spinkit) to show a fancy loading indicators
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
