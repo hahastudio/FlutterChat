@@ -16,7 +16,8 @@ class OpenAiApi {
   Future<ChatResponse> chatCompletion(List<ChatMessage> messages) async {
     final uri = Uri.https(endPointHost, '$endPointPrefix/chat/completions');
     var headers = {
-      'Authorization': 'Bearer ${LocalStorageService().apiKey}'
+      'Authorization': 'Bearer ${LocalStorageService().apiKey}',
+      'Content-Type': 'application/json'
     };
     if (LocalStorageService().organization != '') {
       headers['OpenAI-Organization'] = LocalStorageService().organization;
@@ -24,14 +25,21 @@ class OpenAiApi {
 
     var request = ChatRequest(messages);
     print('[OpenAiApi] ChatCompletion requested');
-    var response = await httpClient.post(uri, headers: headers, body: jsonEncode(request));
+    var response = await httpClient.post(uri, headers: headers, body: jsonEncode(request.toJson()));
     print('[OpenAiApi] ChatCompletion responded');
 
     if (response.statusCode != 200) {
-      throw Exception('Error connecting OpenAI server: status ${response.statusCode}');
+      String errorMessage = 'Error connecting OpenAI: ';
+      try {
+        var errorResponse = json.decode(utf8.decode(response.bodyBytes));
+        errorMessage += errorResponse['error']['message'];
+      } catch (e) {
+        errorMessage += 'Status code ${response.statusCode}';
+      }
+      throw Exception(errorMessage);
     }
 
-    var chatResponse = ChatResponse.fromJson(jsonDecode(response.body));
+    var chatResponse = ChatResponse.fromJson(json.decode(utf8.decode(response.bodyBytes)));
     return chatResponse;
   }
 }
