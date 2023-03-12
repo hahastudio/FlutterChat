@@ -60,7 +60,9 @@ class ChatService {
       conversation.messages.add(ConversationMessage.fromChatMessage(response.choices[0].message));
     } catch (e) {
       // drop 'Exception: '
-      conversation.error = e.toString().substring(11);
+      conversation.error = e.toString();
+      if (conversation.error.startsWith('Exception: '))
+        conversation.error = conversation.error.substring(11);
       conversation.messages.last.isError = true;
     }
 

@@ -9,12 +9,7 @@ class SafeHttpClient extends http.BaseClient {
 
   SafeHttpClient(http.Client httpClient) :
       _inner = RetryClient(httpClient,
-        when: (response) => response.statusCode >= 500,
-        whenError: (dynamic error, StackTrace stackTrace) {
-          log(error);
-          log(stackTrace.toString());
-          return true;
-        }
+        when: (response) => response.statusCode >= 500
       );
 
   @override
