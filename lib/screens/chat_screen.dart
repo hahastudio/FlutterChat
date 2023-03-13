@@ -153,7 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         return;
                       var newMessage = ConversationMessage('user', _textEditingController.text);
                       _textEditingController.text = '';
-                      if (conversation.messages.length > 1 && conversation.messages.last.role == 'user') {
+                      if (conversation.messages.isNotEmpty && conversation.messages.last.role == 'user') {
                         conversation.messages.last = newMessage;
                       } else {
                         conversation.messages.add(newMessage);

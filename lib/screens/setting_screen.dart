@@ -75,7 +75,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       apiKey = result;
                     });
                   }
-                  _textFieldController.text = '';
                 },
               ),
               SettingsTile.navigation(
@@ -94,7 +93,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       organization = result;
                     });
                   }
-                  _textFieldController.text = '';
                 },
               ),
             ],
