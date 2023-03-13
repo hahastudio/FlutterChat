@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../models/models.dart';
 
@@ -24,7 +25,7 @@ class ChatMessageWidget extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: SelectableText(message.content)
+              child: MarkdownBody(data: message.content, selectable: true)
             )
           ],
         )

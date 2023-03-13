@@ -105,8 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: [
             // system message
-            if(_showSystemMessage)
-            Padding(
+            if(_showSystemMessage) Padding(
               padding: const EdgeInsets.all(10),
               child: Row(
                 children: [
