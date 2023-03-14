@@ -142,6 +142,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: TextField(
                       controller: _textEditingController,
                       focusNode: _focusNode,
+                      minLines: 1,
+                      maxLines: 3,
                       onSubmitted: (value) async { },
                     ),
                   ),
@@ -167,6 +169,27 @@ class _ChatScreenState extends State<ChatScreen> {
                         curve: Curves.fastOutSlowIn
                       );
                     },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () async {
+                      if (state.status == ChatStatus.loading)
+                        return;
+                      if (conversation.messages.isEmpty)
+                        return;
+                      if (conversation.messages.last.role == 'assistant') {
+                        conversation.messages.removeLast();
+                      }
+                      conversation.lastUpdated = DateTime.now();
+                      BlocProvider.of<ChatBloc>(context).add(
+                          ChatSubmitted(conversation)
+                      );
+                      _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.fastOutSlowIn
+                      );
+                    }
                   )
                 ],
               )
