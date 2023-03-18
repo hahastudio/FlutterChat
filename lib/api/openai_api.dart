@@ -76,9 +76,9 @@ class OpenAiApi {
         // data: [DONE]
         final String data = utf8.decode(value);
         final List<String> dataLines = data
-            .split('\n')
-            .where((element) => element.isNotEmpty)
-            .toList();
+          .split('\n')
+          .where((element) => element.isNotEmpty)
+          .toList();
         for (String line in dataLines) {
           if (line.startsWith('data: ')) {
             final String data = line.substring(6);
@@ -108,6 +108,9 @@ class OpenAiApi {
       onError: (error, stackTrace) {
         controller.addError(error, stackTrace);
       }); // response.stream.listen
+    },
+    onError: (error, stackTrace) {
+      controller.addError(error, stackTrace);
     }); // httpClient.send(request).then
 
     return controller.stream;

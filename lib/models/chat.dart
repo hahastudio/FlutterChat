@@ -29,7 +29,7 @@ class ChatMessage {
 
 class ChatRequest {
   /// ID of the model to use. Currently, only gpt-3.5-turbo and gpt-3.5-turbo-0301 are supported.
-  final String model = 'gpt-3.5-turbo-0301';
+  final String model = 'gpt-3.5-turbo';
   /// The messages to generate chat completions for
   final List<ChatMessage> messages;
   ///

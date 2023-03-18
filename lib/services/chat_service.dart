@@ -73,6 +73,15 @@ class ChatService {
     return conversation;
   }
 
+  Future _handleErrorGetResponseStream(dynamic error, Conversation conversation) async {
+    conversation.error = error.toString();
+    if (conversation.error.startsWith('Exception: '))
+      conversation.error = conversation.error.substring(11);
+    conversation.messages.last.isError = true;
+    conversation.lastUpdated = DateTime.now();
+    await updateConversation(conversation);
+  }
+
   Stream<Conversation> getResponseStreamFromServer(Conversation conversation) {
     final conversationStream = StreamController<Conversation>();
 
@@ -82,30 +91,23 @@ class ChatService {
     var messages = conversation.messages.map((e) => e.toChatMessage()).toList();
     messages.insert(0, systemMessage);
 
-    try {
-      var responseStream = _apiServer.chatCompletionStream(messages);
-      responseStream.listen((chatStream) {
-        if (chatStream.choices[0].delta.role.isNotEmpty)
-          conversation.messages.add(ConversationMessage(chatStream.choices[0].delta.role, ''));
-        if (chatStream.choices[0].delta.content.isNotEmpty)
-          conversation.messages.last.content += chatStream.choices[0].delta.content;
-        conversation.lastUpdated = DateTime.now();
-        updateConversation(conversation);
-        conversationStream.add(conversation);
-      },
-      onDone: () {
-        conversationStream.close();
-      });
-    } catch (e) {
-      // drop 'Exception: '
-      conversation.error = e.toString();
-      if (conversation.error.startsWith('Exception: '))
-        conversation.error = conversation.error.substring(11);
-      conversation.messages.last.isError = true;
+    var responseStream = _apiServer.chatCompletionStream(messages);
+    responseStream.listen((chatStream) {
+      if (chatStream.choices[0].delta.role.isNotEmpty)
+        conversation.messages.add(ConversationMessage(chatStream.choices[0].delta.role, ''));
+      if (chatStream.choices[0].delta.content.isNotEmpty)
+        conversation.messages.last.content += chatStream.choices[0].delta.content;
       conversation.lastUpdated = DateTime.now();
-      updateConversation(conversation);
       conversationStream.add(conversation);
-    }
+    },
+    onDone: () async {
+      await updateConversation(conversation);
+      conversationStream.close();
+    },
+    onError: (error) async {
+      await _handleErrorGetResponseStream(error, conversation);
+      conversationStream.add(conversation);
+    });
 
     return conversationStream.stream;
   }
