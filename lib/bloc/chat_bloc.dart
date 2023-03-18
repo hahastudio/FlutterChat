@@ -22,6 +22,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   {
     on<ChatLastUpdatedChanged>(_onLastUpdatedChanged);
     on<ChatSubmitted>(_onSubmitted);
+    on<ChatStreamStarted>(_onStreamStarted);
+    on<ChatStreaming>(_onStreaming);
+    on<ChatStreamEnded>(_onStreamEnded);
   }
 
   final ChatService _chatService;
@@ -48,5 +51,33 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     } catch (e) {
       emit(state.copyWith(initialConversation: event.conversation, status: ChatStatus.failure));
     }
+  }
+
+  void _onStreamStarted(
+    ChatStreamStarted event,
+    Emitter<ChatState> emit,
+  ) {
+    emit(state.copyWith(initialConversation: event.conversation, status: ChatStatus.loading));
+  }
+
+  void _onStreaming(
+    ChatStreaming event,
+    Emitter<ChatState> emit,
+  ) {
+    emit(state.copyWith(
+      initialConversation: event.conversation,
+      lastUpdated: event.lastUpdated,
+      status: event.conversation.error.isNotEmpty ? ChatStatus.failure : ChatStatus.loading
+    ));
+  }
+
+  void _onStreamEnded(
+      ChatStreamEnded event,
+      Emitter<ChatState> emit,
+      ) {
+    emit(state.copyWith(
+      initialConversation: event.conversation,
+      status: event.conversation.error.isNotEmpty ? ChatStatus.failure : ChatStatus.success
+    ));
   }
 }

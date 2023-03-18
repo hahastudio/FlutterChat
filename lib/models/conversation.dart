@@ -52,7 +52,7 @@ class Conversation {
 
 class ConversationMessage {
   final String role;
-  final String content;
+  String content;
   bool isError;
 
   ConversationMessage(this.role, this.content, { this.isError = false });

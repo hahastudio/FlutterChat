@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../bloc/blocs.dart';
 import '../models/models.dart';
@@ -68,6 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<ChatBloc>().state;
     var conversation = state.initialConversation;
+    var chatService = context.read<ChatService>();
 
     if (state.status == ChatStatus.failure) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -78,7 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
               label: 'Resend',
               onPressed: () {
                 BlocProvider.of<ChatBloc>(context).add(
-                    ChatSubmitted(conversation)
+                  ChatSubmitted(conversation)
                 );
               },
             ),
@@ -115,6 +115,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               )
             ),
+            // loading indicator
+            if (state.status == ChatStatus.loading)
+              const LinearProgressIndicator(),
             // chat messages
             Flexible(
               child: ListView.builder(
@@ -125,13 +128,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               )
             ),
-            // loading indicator
-            if (state.status == ChatStatus.loading)
-              const SizedBox(height: 8),
-            if (state.status == ChatStatus.loading)
-              const SpinKitThreeBounce(color: Colors.green, size: 18),
-            if (state.status == ChatStatus.loading)
-              const SizedBox(height: 8),
             // chat input
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -159,15 +155,18 @@ class _ChatScreenState extends State<ChatScreen> {
                       } else {
                         conversation.messages.add(newMessage);
                       }
-                      conversation.lastUpdated = DateTime.now();
-                      BlocProvider.of<ChatBloc>(context).add(
-                        ChatSubmitted(conversation)
-                      );
-                      _scrollController.animateTo(
-                        _scrollController.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.fastOutSlowIn
-                      );
+                      BlocProvider.of<ChatBloc>(context).add(ChatStreamStarted(conversation));
+                      chatService.getResponseStreamFromServer(conversation).listen((conversation) {
+                        BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
+                        _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.fastOutSlowIn
+                        );
+                      },
+                      onDone: () {
+                        BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
+                      });
                     },
                   ),
                   IconButton(
@@ -180,15 +179,18 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (conversation.messages.last.role == 'assistant') {
                         conversation.messages.removeLast();
                       }
-                      conversation.lastUpdated = DateTime.now();
-                      BlocProvider.of<ChatBloc>(context).add(
-                          ChatSubmitted(conversation)
-                      );
-                      _scrollController.animateTo(
-                          _scrollController.position.maxScrollExtent,
-                          duration: const Duration(milliseconds: 400),
-                          curve: Curves.fastOutSlowIn
-                      );
+                      BlocProvider.of<ChatBloc>(context).add(ChatStreamStarted(conversation));
+                      chatService.getResponseStreamFromServer(conversation).listen((conversation) {
+                        BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
+                        _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.fastOutSlowIn
+                        );
+                      },
+                      onDone: () {
+                        BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
+                      });
                     }
                   )
                 ],

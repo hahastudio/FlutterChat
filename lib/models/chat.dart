@@ -32,15 +32,18 @@ class ChatRequest {
   final String model = 'gpt-3.5-turbo-0301';
   /// The messages to generate chat completions for
   final List<ChatMessage> messages;
+  ///
+  final bool stream;
 
-  ChatRequest(this.messages);
+  ChatRequest(this.messages, {this.stream = false});
 
   static ChatRequest fromJson(Map<String, dynamic> json) =>
-      ChatRequest(ChatMessage.fromListJson(json['messages']));
+    ChatRequest(ChatMessage.fromListJson(json['messages']));
 
   Map<String, dynamic> toJson() => {
     'model': model,
     'messages': messages.map((m) => m.toJson()).toList(),
+    'stream': stream
   };
 }
 
@@ -52,10 +55,10 @@ class ChatResponseChoice {
   ChatResponseChoice(this.index, this.message, this.finishReason);
 
   static ChatResponseChoice fromJson(Map<String, dynamic> json) =>
-      ChatResponseChoice(json['index'],
-          ChatMessage.fromJson(json['message']),
-          json['finish_reason'] ?? ''
-      );
+    ChatResponseChoice(json['index'],
+      ChatMessage.fromJson(json['message']),
+      json['finish_reason'] ?? ''
+    );
 
   static List<ChatResponseChoice> fromListJson(List json) {
     final choices = <ChatResponseChoice>[];
@@ -80,10 +83,10 @@ class ChatResponseUsage {
   ChatResponseUsage(promptTokens, completionTokens, totalTokens);
 
   static ChatResponseUsage fromJson(Map<String, dynamic> json) =>
-      ChatResponseUsage(json['prompt_tokens'],
-          json['completion_tokens'],
-          json['total_tokens']
-      );
+    ChatResponseUsage(json['prompt_tokens'],
+      json['completion_tokens'],
+      json['total_tokens']
+    );
 }
 
 class ChatResponse {
@@ -96,10 +99,61 @@ class ChatResponse {
   ChatResponse(this.id, this.object, this.created, this.choices, this.usage);
 
   static ChatResponse fromJson(Map<String, dynamic> json) =>
-      ChatResponse(json['id'],
-          json['object'],
-          DateTime.fromMillisecondsSinceEpoch(doubleToInt(json['created']) * 1000),
-          ChatResponseChoice.fromListJson(json['choices']),
-          ChatResponseUsage.fromJson(json['usage'])
-      );
+    ChatResponse(json['id'],
+      json['object'],
+      DateTime.fromMillisecondsSinceEpoch(doubleToInt(json['created']) * 1000),
+      ChatResponseChoice.fromListJson(json['choices']),
+      ChatResponseUsage.fromJson(json['usage'])
+    );
+}
+
+class ChatResponseDelta {
+  final String role;
+  final String content;
+
+  ChatResponseDelta(this.role, this.content);
+
+  static ChatResponseDelta fromJson(Map<String, dynamic> json) =>
+    ChatResponseDelta(
+      json['role'] ?? '',
+      json['content'] ?? ''
+    );
+}
+
+class ChatResponseChoiceStream {
+  final int index;
+  final ChatResponseDelta delta;
+  final String finishReason;
+
+  ChatResponseChoiceStream(this.index, this.delta, this.finishReason);
+
+  static ChatResponseChoiceStream fromJson(Map<String, dynamic> json) =>
+    ChatResponseChoiceStream(json['index'],
+      ChatResponseDelta.fromJson(json['delta']),
+      json['finish_reason'] ?? ''
+    );
+
+  static List<ChatResponseChoiceStream> fromListJson(List json) {
+    final choices = <ChatResponseChoiceStream>[];
+    for (final item in json) {
+      choices.add(ChatResponseChoiceStream.fromJson(item));
+    }
+    return choices;
+  }
+}
+
+class ChatResponseStream {
+  final String id;
+  final String object;
+  final DateTime created;
+  final List<ChatResponseChoiceStream> choices;
+
+  ChatResponseStream(this.id, this.object, this.created, this.choices);
+
+  static ChatResponseStream fromJson(Map<String, dynamic> json) =>
+    ChatResponseStream(json['id'],
+      json['object'],
+      DateTime.fromMillisecondsSinceEpoch(doubleToInt(json['created']) * 1000),
+      ChatResponseChoiceStream.fromListJson(json['choices']),
+    );
 }
