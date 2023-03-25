@@ -63,11 +63,52 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  void handleSend(BuildContext context, Conversation conversation) {
+    var chatService = context.read<ChatService>();
+    var newMessage = ConversationMessage('user', _textEditingController.text);
+    _textEditingController.text = '';
+    if (conversation.messages.isNotEmpty && conversation.messages.last.role == 'user') {
+      conversation.messages.last = newMessage;
+    } else {
+      conversation.messages.add(newMessage);
+    }
+    BlocProvider.of<ChatBloc>(context).add(ChatStreamStarted(conversation));
+    chatService.getResponseStreamFromServer(conversation).listen((conversation) {
+      BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.fastOutSlowIn
+      );
+    },
+    onDone: () {
+      BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
+    });
+  }
+
+  void handleRefresh(BuildContext context, Conversation conversation) {
+    var chatService = context.read<ChatService>();
+    if (conversation.messages.last.role == 'assistant') {
+      conversation.messages.removeLast();
+    }
+    BlocProvider.of<ChatBloc>(context).add(ChatStreamStarted(conversation));
+    chatService.getResponseStreamFromServer(conversation).listen((conversation) {
+      BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.fastOutSlowIn
+      );
+    },
+    onDone: () {
+      BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<ChatBloc>().state;
     var conversation = state.initialConversation;
-    var chatService = context.read<ChatService>();
 
     if (state.status == ChatStatus.failure) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -143,55 +184,22 @@ class _ChatScreenState extends State<ChatScreen> {
                       onSubmitted: (value) async { },
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () async {
-                      if (state.status == ChatStatus.loading)
-                        return;
-                      var newMessage = ConversationMessage('user', _textEditingController.text);
-                      _textEditingController.text = '';
-                      if (conversation.messages.isNotEmpty && conversation.messages.last.role == 'user') {
-                        conversation.messages.last = newMessage;
-                      } else {
-                        conversation.messages.add(newMessage);
-                      }
-                      BlocProvider.of<ChatBloc>(context).add(ChatStreamStarted(conversation));
-                      chatService.getResponseStreamFromServer(conversation).listen((conversation) {
-                        BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
-                        _scrollController.animateTo(
-                          _scrollController.position.maxScrollExtent,
-                          duration: const Duration(milliseconds: 400),
-                          curve: Curves.fastOutSlowIn
-                        );
-                      },
-                      onDone: () {
-                        BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
-                      });
-                    },
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _textEditingController,
+                    builder: (context, value, child) {
+                      return IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: (state.status == ChatStatus.loading) || (value.text.isEmpty || value.text.trim().isEmpty)
+                        ? null
+                        : () => handleSend(context, conversation)
+                      );
+                    }
                   ),
                   IconButton(
                     icon: const Icon(Icons.refresh),
-                    onPressed: () async {
-                      if (state.status == ChatStatus.loading)
-                        return;
-                      if (conversation.messages.isEmpty)
-                        return;
-                      if (conversation.messages.last.role == 'assistant') {
-                        conversation.messages.removeLast();
-                      }
-                      BlocProvider.of<ChatBloc>(context).add(ChatStreamStarted(conversation));
-                      chatService.getResponseStreamFromServer(conversation).listen((conversation) {
-                        BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
-                        _scrollController.animateTo(
-                            _scrollController.position.maxScrollExtent,
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.fastOutSlowIn
-                        );
-                      },
-                      onDone: () {
-                        BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
-                      });
-                    }
+                    onPressed: (state.status == ChatStatus.loading) || (conversation.messages.isEmpty)
+                      ? null
+                      : () => handleRefresh(context, conversation)
                   )
                 ],
               )
