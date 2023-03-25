@@ -63,6 +63,23 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  Future<Conversation?> showConversationDialog(BuildContext context, bool isEdit, Conversation conversation) => showDialog<Conversation?>(
+    context: context,
+    builder: (context) {
+      return ConversationEditDialog(conversation: conversation, isEdit: isEdit);
+    }
+  );
+
+  Future<bool?> showClearConfirmDialog(BuildContext context) => showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return const ConfirmDialog(
+        title: 'Clear conversation',
+        content: 'Would you like to clear conversation history?',
+      );
+    },
+  );
+
   void handleSend(BuildContext context, Conversation conversation) {
     var chatService = context.read<ChatService>();
     var newMessage = ConversationMessage('user', _textEditingController.text);
@@ -109,6 +126,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<ChatBloc>().state;
     var conversation = state.initialConversation;
+    var chatService = context.read<ChatService>();
+    var chatBloc = BlocProvider.of<ChatBloc>(context);
 
     if (state.status == ChatStatus.failure) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -139,7 +158,45 @@ class _ChatScreenState extends State<ChatScreen> {
                 _showSystemMessage = !_showSystemMessage;
               });
             },
-          )
+          ),
+          PopupMenuButton(
+            icon: const Icon(Icons.more_vert),
+            itemBuilder: (context) {
+              return const [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Text('Edit'),
+                ),
+                PopupMenuItem(
+                  value: 'clear',
+                  child: Text('Clear conversation'),
+                ),
+              ];
+            },
+            onSelected: (value) async {
+              switch (value) {
+                case 'edit':
+                  var newConversation = await showConversationDialog(context, true, conversation);
+                  if (newConversation != null) {
+                    conversation.lastUpdated = DateTime.now();
+                    await chatService.updateConversation(newConversation);
+                    chatBloc.add(ChatLastUpdatedChanged(conversation, conversation.lastUpdated));
+                  }
+                  break;
+                case 'clear':
+                  var result = await showClearConfirmDialog(context);
+                  if (result == true) {
+                    conversation.messages = [];
+                    conversation.lastUpdated = DateTime.now();
+                    await chatService.updateConversation(conversation);
+                    chatBloc.add(ChatLastUpdatedChanged(conversation, conversation.lastUpdated));
+                  }
+                  break;
+                default:
+                  break;
+              }
+            },
+          ),
         ]
       ),
       body: SafeArea(
