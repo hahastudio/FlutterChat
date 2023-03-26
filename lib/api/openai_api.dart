@@ -57,7 +57,8 @@ class OpenAiApi {
     if (LocalStorageService().organization != '') {
       headers['OpenAI-Organization'] = LocalStorageService().organization;
     }
-    var requestBody = jsonEncode(ChatRequest(messages, stream: true).toJson());
+
+    var requestBody = jsonEncode(ChatRequest(messages, model: LocalStorageService().model, stream: true).toJson());
     http.Request request = http.Request('POST', uri);
     request.headers.addAll(headers);
     request.body = requestBody;

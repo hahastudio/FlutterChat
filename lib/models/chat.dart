@@ -29,13 +29,14 @@ class ChatMessage {
 
 class ChatRequest {
   /// ID of the model to use. Currently, only gpt-3.5-turbo and gpt-3.5-turbo-0301 are supported.
-  final String model = 'gpt-3.5-turbo';
+  final String model;
+  static const String defaultModel = 'gpt-3.5-turbo';
   /// The messages to generate chat completions for
   final List<ChatMessage> messages;
   ///
   final bool stream;
 
-  ChatRequest(this.messages, {this.stream = false});
+  ChatRequest(this.messages, {this.model = defaultModel, this.stream = false});
 
   static ChatRequest fromJson(Map<String, dynamic> json) =>
     ChatRequest(ChatMessage.fromListJson(json['messages']));

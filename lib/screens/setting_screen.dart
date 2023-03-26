@@ -14,6 +14,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String apiKey = LocalStorageService().apiKey;
   String organization = LocalStorageService().organization;
+  String model = LocalStorageService().model;
 
   final _textFieldController = TextEditingController();
 
@@ -62,9 +63,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SettingsTile.navigation(
                 leading: const Icon(Icons.key),
                 title: const Text('API Key'),
-                value: Text(LocalStorageService().apiKey == '' ?
-                'Add your secret API key' :
-                obscureApiKey(LocalStorageService().apiKey)
+                value: Text(LocalStorageService().apiKey == ''
+                  ? 'Add your secret API key'
+                  : obscureApiKey(LocalStorageService().apiKey)
                 ),
                 onPressed: (context) async {
                   _textFieldController.text = LocalStorageService().apiKey;
@@ -80,9 +81,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SettingsTile.navigation(
                 leading: const Icon(Icons.group),
                 title: const Text('Organization (optional)'),
-                value: Text(LocalStorageService().organization == '' ?
-                'None' :
-                LocalStorageService().organization
+                value: Text(LocalStorageService().organization == ''
+                  ? 'None'
+                  : LocalStorageService().organization
                 ),
                 onPressed: (context) async {
                   _textFieldController.text = LocalStorageService().organization;
@@ -97,6 +98,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
+          SettingsSection(
+            title: const Text('Chat Parameters'),
+            tiles: <SettingsTile>[
+              SettingsTile.navigation(
+                leading: const Icon(Icons.view_in_ar),
+                title: const Text('Model'),
+                value: Text(LocalStorageService().model),
+                trailing: PopupMenuButton(
+                  icon: const Icon(Icons.more_vert),
+                  itemBuilder: (context) {
+                    return const [
+                      PopupMenuItem(
+                        value: 'gpt-3.5-turbo',
+                        child: Text('gpt-3.5-turbo'),
+                      ),
+                      PopupMenuItem(
+                        value: 'gpt-4',
+                        child: Text('gpt-4'),
+                      ),
+                      PopupMenuItem(
+                        value: 'gpt-4-32k',
+                        child: Text('gpt-4-32k'),
+                      )
+                    ];
+                  },
+                  onSelected: (value) async {
+                    LocalStorageService().model = value;
+                    setState(() {
+                      model = value;
+                    });
+                  },
+                ),
+              ),
+            ]
+          )
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:flutter_chat/models/chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorageService {
@@ -14,6 +15,8 @@ class LocalStorageService {
 
   static const prefApiKey = 'pref_apikey';
   static const prefOrganization = 'pref_organization';
+  static const prefModel = 'pref_model';
+
   static const storeConversationList = 'store_conversations';
   static const storeConversationPrefix = 'store_conversation_';
 
@@ -32,6 +35,14 @@ class LocalStorageService {
   set organization(String value) {
     (() async {
       await _prefs.setString(prefOrganization, value);
+    })();
+  }
+
+  String get model => _prefs.getString(prefModel) ?? ChatRequest.defaultModel;
+
+  set model(String value) {
+    (() async {
+      await _prefs.setString(prefModel, value);
     })();
   }
 
