@@ -108,8 +108,8 @@ class ChatResponse {
 }
 
 class ChatResponseDelta {
-  final String role;
-  final String content;
+  String role;
+  String content;
 
   ChatResponseDelta(this.role, this.content);
 

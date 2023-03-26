@@ -75,10 +75,13 @@ class OpenAiApi {
         //
         // data: [DONE]
         final String data = utf8.decode(value);
+
+        // one response can contain multiple data line
         final List<String> dataLines = data
           .split('\n')
           .where((element) => element.isNotEmpty)
           .toList();
+
         for (String line in dataLines) {
           if (line.startsWith('data: ')) {
             final String data = line.substring(6);
@@ -87,18 +90,19 @@ class OpenAiApi {
               return;
             }
             controller.add(ChatResponseStream.fromJson(jsonDecode(data)));
-            return;
+            continue;
           }
-
+          // error handling
           final error = jsonDecode(data)['error'];
           if (error != null) {
-            String errorMessage = 'Error connecting OpenAI: ';
+            String errorMessage = '';
             try {
               errorMessage += error['message'];
             } catch (e) {
               errorMessage += 'Status code ${response.statusCode}';
             }
             controller.addError(Exception(errorMessage));
+            return;
           }
         }
       },

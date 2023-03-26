@@ -99,7 +99,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             Navigator.of(context)
                               .push(ChatScreenPage.route(conversation))
                               .then((_) => bloc.add(const ConversationsRequested()));
-                          bloc.add(const ConversationsRequested());
                         }
                       },
                       trailing: PopupMenuButton(
