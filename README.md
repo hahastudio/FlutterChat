@@ -6,19 +6,22 @@ A new Flutter project which communicates with [OpenAI API](https://platform.open
 
 ![Screenshot 1](/document/readme_screenshot_01.png)
 ![Screenshot 2](/document/readme_screenshot_02.png)
+![Screenshot 3](/document/readme_screenshot_03.png)
+![Screenshot 4](/document/readme_screenshot_04.png)
 
 ## Features
 
 - Support [requesting organization](https://platform.openai.com/docs/api-reference/requesting-organization)
 - Support [system message](https://platform.openai.com/docs/guides/chat/introduction)
 - Support [streaming message](https://platform.openai.com/docs/api-reference/chat/create#chat/create-stream) like ChatGPT
+- Support to choose GPT models (gpt-3.5-turbo, gpt-4, gpt-4-32k)
 
 ## How to use
 
 1. Get [OpenAI API Key](https://platform.openai.com/docs/api-reference/authentication)
 2. Tap setting button on top right corner to set API Key (required) and Organization (optional)
 3. Add a new conversation
-4. Chat with Open AI!
+4. Chat with Open AI
 
 ## Architecture
 
