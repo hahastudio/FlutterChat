@@ -15,6 +15,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String apiKey = LocalStorageService().apiKey;
   String organization = LocalStorageService().organization;
   String model = LocalStorageService().model;
+  int historyCount = LocalStorageService().historyCount;
 
   final _textFieldController = TextEditingController();
 
@@ -101,7 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SettingsSection(
             title: const Text('Chat Parameters'),
             tiles: <SettingsTile>[
-              SettingsTile.navigation(
+              SettingsTile(
                 leading: const Icon(Icons.view_in_ar),
                 title: const Text('Model'),
                 value: Text(LocalStorageService().model),
@@ -127,6 +128,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     LocalStorageService().model = value;
                     setState(() {
                       model = value;
+                    });
+                  },
+                ),
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.history),
+                title: const Text('History Limit'),
+                value: Text(LocalStorageService().historyCount.toString()),
+                trailing: PopupMenuButton(
+                  icon: const Icon(Icons.more_vert),
+                  itemBuilder: (context) {
+                    return const [
+                      PopupMenuItem(
+                        value: '0',
+                        child: Text('0'),
+                      ),
+                      PopupMenuItem(
+                        value: '2',
+                        child: Text('2'),
+                      ),
+                      PopupMenuItem(
+                        value: '4',
+                        child: Text('4'),
+                      ),
+                      PopupMenuItem(
+                        value: '6',
+                        child: Text('6'),
+                      ),
+                      PopupMenuItem(
+                        value: '8',
+                        child: Text('8'),
+                      ),
+                      PopupMenuItem(
+                        value: '10',
+                        child: Text('10'),
+                      )
+                    ];
+                  },
+                  onSelected: (value) async {
+                    int intValue = int.parse(value);
+                    LocalStorageService().historyCount = intValue;
+                    setState(() {
+                      historyCount = intValue;
                     });
                   },
                 ),

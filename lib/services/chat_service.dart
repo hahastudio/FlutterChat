@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import '../api/openai_api.dart';
-import './local_storage_service.dart';
+import 'local_storage_service.dart';
+import 'token_service.dart';
 import '../models/models.dart';
 
 class ChatService {
@@ -53,7 +54,7 @@ class ChatService {
     conversation.error = '';
 
     var systemMessage = ChatMessage('system', conversation.systemMessage);
-    var messages = conversation.messages.map((e) => e.toChatMessage()).toList();
+    var messages = TokenService.getEffectiveMessages(conversation, '').map((e) => e.toChatMessage()).toList();
     messages.insert(0, systemMessage);
 
     try {
@@ -88,7 +89,7 @@ class ChatService {
     conversation.error = '';
 
     var systemMessage = ChatMessage('system', conversation.systemMessage);
-    var messages = conversation.messages.map((e) => e.toChatMessage()).toList();
+    var messages = TokenService.getEffectiveMessages(conversation, '').map((e) => e.toChatMessage()).toList();
     messages.insert(0, systemMessage);
 
     var responseStream = _apiServer.chatCompletionStream(messages);

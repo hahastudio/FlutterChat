@@ -397,6 +397,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.16"
+  tiktoken:
+    dependency: "direct main"
+    description:
+      name: tiktoken
+      sha256: "4f080dd8b719e5dac0d0fad88a7c6f1db3b7c3254ea9d4deac34895aa257c0b8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   typed_data:
     dependency: transitive
     description:

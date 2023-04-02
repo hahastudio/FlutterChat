@@ -1,9 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/blocs.dart';
 import '../models/models.dart';
 import '../services/chat_service.dart';
+import '../services/local_storage_service.dart';
+import '../services/token_service.dart';
 import '../widgets/widgets.dart';
 
 class ChatScreenPage extends StatelessWidget {
@@ -81,6 +85,8 @@ class _ChatScreenState extends State<ChatScreen> {
   );
 
   void handleSend(BuildContext context, Conversation conversation) {
+    if (TokenService.getToken(conversation.systemMessage) + TokenService.getToken(_textEditingController.text) >= TokenService.getTokenLimit())
+      return;
     var chatService = context.read<ChatService>();
     var newMessage = ConversationMessage('user', _textEditingController.text);
     _textEditingController.text = '';
@@ -208,7 +214,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: SelectableText(conversation.systemMessage)
+                    child: SelectableText(conversation.systemMessage, maxLines: 5)
                   )
                 ],
               )
@@ -226,32 +232,106 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               )
             ),
-            // chat input
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _textEditingController,
-                      focusNode: _focusNode,
-                      minLines: 1,
-                      maxLines: 3,
-                      onSubmitted: (value) async { },
+            // status bar
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _textEditingController,
+              builder: (context, value, child) {
+                return SizedBox(
+                  height: 24,
+                  child: Container(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Row(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.history, size: 16, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Text('${min(TokenService.getEffectiveMessages(conversation, value.text).length, LocalStorageService().historyCount)}/${LocalStorageService().historyCount}',
+                              style: const TextStyle(fontSize: 12)
+                            )
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                        Row(
+                          children: [
+                            Icon(Icons.translate, size: 16, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Text('System: ${TokenService.getToken(conversation.systemMessage)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: TokenService.getToken(conversation.systemMessage) >= TokenService.getTokenLimit() ?
+                                  Theme.of(context).colorScheme.error :
+                                  null
+                              )
+                            ),
+                            const SizedBox(width: 8),
+                            Text('Input: ${TokenService.getToken(value.text)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: TokenService.getToken(conversation.systemMessage) + TokenService.getToken(value.text) >= TokenService.getTokenLimit() ?
+                                  Theme.of(context).colorScheme.error :
+                                  null
+                              )
+                            ),
+                            const SizedBox(width: 8),
+                            Text('History: ${TokenService.getEffectiveMessagesToken(conversation, value.text)}',
+                              style: const TextStyle(fontSize: 12)
+                            ),
+                          ],
+                        )
+                      ],
                     ),
                   ),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _textEditingController,
-                    builder: (context, value, child) {
-                      return IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: (state.status == ChatStatus.loading) || (value.text.isEmpty || value.text.trim().isEmpty)
-                        ? null
-                        : () => handleSend(context, conversation)
-                      );
-                    }
+                );
+              }
+            ),
+            // chat input
+            Container(
+              padding: const EdgeInsets.only(left: 12, top: 4, bottom: 8),
+              alignment: Alignment.centerRight,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Color.lerp(Theme.of(context).colorScheme.background, Colors.white, 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              decoration: const InputDecoration(
+                                hintText: 'Message',
+                                border: InputBorder.none
+                              ),
+                              controller: _textEditingController,
+                              focusNode: _focusNode,
+                              minLines: 1,
+                              maxLines: 3,
+                              onSubmitted: (value) async { },
+                            ),
+                          ),
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _textEditingController,
+                            builder: (context, value, child) {
+                              return IconButton(
+                                icon: const Icon(Icons.send),
+                                color: TokenService.getToken(conversation.systemMessage) + TokenService.getToken(value.text) >= TokenService.getTokenLimit() ?
+                                  Theme.of(context).colorScheme.error :
+                                  null,
+                                onPressed: (state.status == ChatStatus.loading) || (value.text.isEmpty || value.text.trim().isEmpty)
+                                  ? null
+                                  : () => handleSend(context, conversation)
+                              );
+                            }
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
+
                   IconButton(
                     icon: const Icon(Icons.refresh),
                     onPressed: (state.status == ChatStatus.loading) || (conversation.messages.isEmpty)

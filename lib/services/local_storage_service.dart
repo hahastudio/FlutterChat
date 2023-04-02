@@ -16,6 +16,7 @@ class LocalStorageService {
   static const prefApiKey = 'pref_apikey';
   static const prefOrganization = 'pref_organization';
   static const prefModel = 'pref_model';
+  static const prefHistoryCount = 'pref_historyCount';
 
   static const storeConversationList = 'store_conversations';
   static const storeConversationPrefix = 'store_conversation_';
@@ -43,6 +44,14 @@ class LocalStorageService {
   set model(String value) {
     (() async {
       await _prefs.setString(prefModel, value);
+    })();
+  }
+
+  int get historyCount => _prefs.getInt(prefHistoryCount) ?? 4;
+
+  set historyCount(int value) {
+    (() async {
+      await _prefs.setInt(prefHistoryCount, value);
     })();
   }
 

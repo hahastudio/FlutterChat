@@ -46,6 +46,14 @@ class OpenAiApi {
     return chatResponse;
   }
 
+  // The stream is like:
+  // data: {"choices":[{"delta":{"role":"assistant"},"index":0,"finish_reason":null}],"id":"...","object":"chat.completion.chunk","created":1679123429,"model":"gpt-3.5-turbo-0301"}
+  //
+  // data: {"choices":[{"delta":{"content":"你"},"index":0,"finish_reason":null}],"id":"...","object":"chat.completion.chunk","created":1679123429,"model":"gpt-3.5-turbo-0301"}
+  //
+  // data: {"choices":[{"delta":{"content":"好"},"index":0,"finish_reason":null}],"id":"...","object":"chat.completion.chunk","created":1679123429,"model":"gpt-3.5-turbo-0301"}
+  //
+  // data: [DONE]
   Stream<ChatResponseStream> chatCompletionStream(List<ChatMessage> messages) {
     StreamController<ChatResponseStream> controller = StreamController<ChatResponseStream>();
 
@@ -67,16 +75,7 @@ class OpenAiApi {
     httpClient.send(request).then((response) {
       log('[OpenAiApi] ChatCompletion Stream response started');
       response.stream.listen((value) {
-        // The stream is like:
-        // data: {"choices":[{"delta":{"role":"assistant"},"index":0,"finish_reason":null}],"id":"...","object":"chat.completion.chunk","created":1679123429,"model":"gpt-3.5-turbo-0301"}
-        //
-        // data: {"choices":[{"delta":{"content":"你"},"index":0,"finish_reason":null}],"id":"...","object":"chat.completion.chunk","created":1679123429,"model":"gpt-3.5-turbo-0301"}
-        //
-        // data: {"choices":[{"delta":{"content":"好"},"index":0,"finish_reason":null}],"id":"...","object":"chat.completion.chunk","created":1679123429,"model":"gpt-3.5-turbo-0301"}
-        //
-        // data: [DONE]
         final String data = utf8.decode(value);
-
         // one response can contain multiple data line
         final List<String> dataLines = data
           .split('\n')
