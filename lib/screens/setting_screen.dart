@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/local_storage_service.dart';
 
@@ -97,6 +98,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   }
                 },
               ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.open_in_new),
+                title: const Text('Manage API keys'),
+                value: const Text('https://platform.openai.com/account/api-keys'),
+                onPressed: (context) async {
+                  await launchUrl(Uri.parse('https://platform.openai.com/account/api-keys'), mode: LaunchMode.externalApplication);
+                },
+              ),
             ],
           ),
           SettingsSection(
@@ -174,6 +183,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     });
                   },
                 ),
+              ),
+            ]
+          ),
+          SettingsSection(
+            title: const Text('About'),
+            tiles: <SettingsTile>[
+              SettingsTile.navigation(
+                leading: const Icon(Icons.home),
+                title: const Text('GitHub Project'),
+                value: const Text('https://github.com/hahastudio/FlutterChat'),
+                onPressed: (context) async {
+                  await launchUrl(Uri.parse('https://github.com/hahastudio/FlutterChat'), mode: LaunchMode.externalApplication);
+                },
               ),
             ]
           )
