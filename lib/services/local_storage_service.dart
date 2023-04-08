@@ -15,6 +15,7 @@ class LocalStorageService {
 
   static const prefApiKey = 'pref_apikey';
   static const prefOrganization = 'pref_organization';
+  static const prefApiHost = 'pref_apiHost';
   static const prefModel = 'pref_model';
   static const prefHistoryCount = 'pref_historyCount';
 
@@ -36,6 +37,19 @@ class LocalStorageService {
   set organization(String value) {
     (() async {
       await _prefs.setString(prefOrganization, value);
+    })();
+  }
+
+  String get apiHost {
+    var result = _prefs.getString(prefApiHost);
+    if ((result == null) || (result.isEmpty))
+      return 'https://api.openai.com';
+    return result;
+  }
+
+  set apiHost(String value) {
+    (() async {
+      await _prefs.setString(prefApiHost, value);
     })();
   }
 

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../models/models.dart';
 import '../services/local_storage_service.dart';
 import '../util/extend_http_client.dart';
+import '../util/string_util.dart';
 
 class OpenAiApi {
   static const endPointHost = 'api.openai.com';
@@ -17,11 +18,16 @@ class OpenAiApi {
   OpenAiApi(this.httpClient);
 
   Future<ChatResponse> chatCompletion(List<ChatMessage> messages) async {
-    final uri = Uri.https(endPointHost, '$endPointPrefix/chat/completions');
+    final uri = Uri.tryParse(stripTrailingSlash(LocalStorageService().apiHost) + '$endPointPrefix/chat/completions');
+    if (uri == null)
+      throw Exception('API Host ${LocalStorageService().apiHost} is not valid');
+
     var headers = {
-      'Authorization': 'Bearer ${LocalStorageService().apiKey}',
       'Content-Type': 'application/json'
     };
+    if (LocalStorageService().apiKey != '') {
+      headers['Authorization'] = 'Bearer ${LocalStorageService().apiKey}';
+    }
     if (LocalStorageService().organization != '') {
       headers['OpenAI-Organization'] = LocalStorageService().organization;
     }
@@ -57,11 +63,16 @@ class OpenAiApi {
   Stream<ChatResponseStream> chatCompletionStream(List<ChatMessage> messages) {
     StreamController<ChatResponseStream> controller = StreamController<ChatResponseStream>();
 
-    final uri = Uri.https(endPointHost, '$endPointPrefix/chat/completions');
+    final uri = Uri.tryParse(stripTrailingSlash(LocalStorageService().apiHost) + '$endPointPrefix/chat/completions');
+    if (uri == null)
+      throw Exception('API Host ${LocalStorageService().apiHost} is not valid');
+
     var headers = {
-      'Authorization': 'Bearer ${LocalStorageService().apiKey}',
       'Content-Type': 'application/json'
     };
+    if (LocalStorageService().apiKey != '') {
+      headers['Authorization'] = 'Bearer ${LocalStorageService().apiKey}';
+    }
     if (LocalStorageService().organization != '') {
       headers['OpenAI-Organization'] = LocalStorageService().organization;
     }

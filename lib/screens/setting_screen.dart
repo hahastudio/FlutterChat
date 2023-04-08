@@ -3,6 +3,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../services/local_storage_service.dart';
+import '../util/string_util.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,6 +16,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String apiKey = LocalStorageService().apiKey;
   String organization = LocalStorageService().organization;
+  String apiHost = LocalStorageService().apiHost;
   String model = LocalStorageService().model;
   int historyCount = LocalStorageService().historyCount;
 
@@ -72,12 +74,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: (context) async {
                   _textFieldController.text = LocalStorageService().apiKey;
                   var result = await openStringDialog(context, 'API Key', 'Open AI API Key like sk-........') ?? '';
-                  if (result != '') {
-                    LocalStorageService().apiKey = result;
-                    setState(() {
-                      apiKey = result;
-                    });
-                  }
+                  LocalStorageService().apiKey = result;
+                  setState(() {
+                    apiKey = result;
+                  });
                 },
               ),
               SettingsTile.navigation(
@@ -90,12 +90,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: (context) async {
                   _textFieldController.text = LocalStorageService().organization;
                   var result = await openStringDialog(context, 'Organization (optional)', 'Organization ID like org-.......') ?? '';
-                  if (result != '') {
-                    LocalStorageService().organization = result;
-                    setState(() {
-                      organization = result;
-                    });
-                  }
+                  LocalStorageService().organization = result;
+                  setState(() {
+                    organization = result;
+                  });
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.flight_takeoff),
+                title: const Text('API Host (optional)'),
+                value: Text('Access ${stripTrailingSlash(LocalStorageService().apiHost) + '/v1/chat/completions'}', style: const TextStyle(overflow: TextOverflow.ellipsis)),
+                onPressed: (context) async {
+                  _textFieldController.text = LocalStorageService().apiHost;
+                  var result = await openStringDialog(context, 'API Host (optional)', 'URL like https://api.openai.com') ?? '';
+                  LocalStorageService().apiHost = result;
+                  setState(() {
+                    apiHost = result;
+                  });
                 },
               ),
               SettingsTile.navigation(
