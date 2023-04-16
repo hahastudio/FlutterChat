@@ -9,6 +9,8 @@ A new Flutter project which communicates with [OpenAI API](https://platform.open
 ![Screenshot 3](/document/readme_screenshot_03.png)
 ![Screenshot 4](/document/readme_screenshot_04.png)
 
+![Screenshot tablet 1](/document/readme_screenshot_tablet_01.png)
+
 ## Features
 
 - Support [requesting organization](https://platform.openai.com/docs/api-reference/requesting-organization)
@@ -18,6 +20,7 @@ A new Flutter project which communicates with [OpenAI API](https://platform.open
 - Support to limit the count of conversation history when sending
 - Support to show token usage in real time
 - Support customized API Host
+- Support tablet view
 
 ## How to use
 
