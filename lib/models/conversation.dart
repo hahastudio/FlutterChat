@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
-import './chat.dart';
+import 'chat.dart';
 import '../util/type_converter.dart';
 
 class Conversation {

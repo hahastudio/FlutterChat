@@ -9,19 +9,24 @@ import '../services/chat_service.dart';
 import '../services/local_storage_service.dart';
 import '../services/token_service.dart';
 import '../widgets/widgets.dart';
+import 'screens.dart';
 
 class ChatScreenPage extends StatelessWidget {
   const ChatScreenPage({super.key});
 
   static Route<void> route(Conversation initialConversation) {
-    return MaterialPageRoute(
-      builder: (context) => BlocProvider(
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => BlocProvider(
         create: (context) => ChatBloc(
           chatService: context.read<ChatService>(),
           initialConversation: initialConversation,
         ),
-        child: const ChatScreen(),
+        child: TabletScreenPage(
+            sidebar: ConversationScreen(selectedConversation: initialConversation),
+            body: const ChatScreen()
+        ),
       ),
+      transitionDuration: Duration.zero,
     );
   }
 
@@ -46,6 +51,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
 
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   late ScrollController _scrollController;
   late TextEditingController _textEditingController;
   late FocusNode _focusNode;
@@ -106,6 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
     },
     onDone: () {
       BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
+      BlocProvider.of<ConversationsBloc>(context).add(const ConversationsRequested());
     });
   }
 
@@ -125,6 +132,7 @@ class _ChatScreenState extends State<ChatScreen> {
     },
     onDone: () {
       BlocProvider.of<ChatBloc>(context).add(ChatStreamEnded(conversation));
+      BlocProvider.of<ConversationsBloc>(context).add(const ConversationsRequested());
     });
   }
 
@@ -134,216 +142,218 @@ class _ChatScreenState extends State<ChatScreen> {
     var conversation = state.initialConversation;
     var chatService = context.read<ChatService>();
     var chatBloc = BlocProvider.of<ChatBloc>(context);
+    var conversationsBloc = BlocProvider.of<ConversationsBloc>(context);
 
     if (state.status == ChatStatus.failure) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(
             content: Text(conversation.error),
             action: SnackBarAction(
               label: 'Resend',
               onPressed: () {
-                BlocProvider.of<ChatBloc>(context).add(
-                  ChatSubmitted(conversation)
-                );
+                BlocProvider.of<ChatBloc>(context).add(ChatSubmitted(conversation));
               },
             ),
           ),
         );
       });
     }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(conversation.title, style: const TextStyle(overflow: TextOverflow.ellipsis)),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.info),
-            onPressed: () {
-              setState(() {
-                _showSystemMessage = !_showSystemMessage;
-              });
-            },
-          ),
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (context) {
-              return const [
-                PopupMenuItem(
-                  value: 'edit',
-                  child: Text('Edit'),
-                ),
-                PopupMenuItem(
-                  value: 'clear',
-                  child: Text('Clear conversation'),
-                ),
-              ];
-            },
-            onSelected: (value) async {
-              switch (value) {
-                case 'edit':
-                  var newConversation = await showConversationDialog(context, true, conversation);
-                  if (newConversation != null) {
-                    conversation.lastUpdated = DateTime.now();
-                    await chatService.updateConversation(newConversation);
-                    chatBloc.add(ChatLastUpdatedChanged(conversation, conversation.lastUpdated));
-                  }
-                  break;
-                case 'clear':
-                  var result = await showClearConfirmDialog(context);
-                  if (result == true) {
-                    conversation.messages = [];
-                    conversation.lastUpdated = DateTime.now();
-                    await chatService.updateConversation(conversation);
-                    chatBloc.add(ChatLastUpdatedChanged(conversation, conversation.lastUpdated));
-                  }
-                  break;
-                default:
-                  break;
-              }
-            },
-          ),
-        ]
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // system message
-            if(_showSystemMessage) Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SelectableText(conversation.systemMessage, maxLines: 5)
-                  )
-                ],
-              )
+    return ScaffoldMessenger(
+      key: scaffoldMessengerKey,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(conversation.title, style: const TextStyle(overflow: TextOverflow.ellipsis)),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.info),
+              onPressed: () {
+                setState(() {
+                  _showSystemMessage = !_showSystemMessage;
+                });
+              },
             ),
-            // loading indicator
-            if (state.status == ChatStatus.loading)
-              const LinearProgressIndicator(),
-            // chat messages
-            Flexible(
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: conversation.messages.length,
-                itemBuilder: (context, index) {
-                  return ChatMessageWidget(message: conversation.messages[index]);
-                },
-              )
-            ),
-            // status bar
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _textEditingController,
-              builder: (context, value, child) {
-                return SizedBox(
-                  height: 24,
-                  child: Container(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Row(
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.history, size: 16, color: Theme.of(context).colorScheme.primary),
-                            const SizedBox(width: 8),
-                            Text('${min(TokenService.getEffectiveMessages(conversation, value.text).length, LocalStorageService().historyCount)}/${LocalStorageService().historyCount}',
-                              style: const TextStyle(fontSize: 12)
-                            )
-                          ],
-                        ),
-                        const SizedBox(width: 20),
-                        Row(
-                          children: [
-                            Icon(Icons.translate, size: 16, color: Theme.of(context).colorScheme.primary),
-                            const SizedBox(width: 8),
-                            Text('System: ${TokenService.getToken(conversation.systemMessage)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: TokenService.getToken(conversation.systemMessage) >= TokenService.getTokenLimit() ?
-                                  Theme.of(context).colorScheme.error :
-                                  null
-                              )
-                            ),
-                            const SizedBox(width: 8),
-                            Text('Input: ${TokenService.getToken(value.text)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: TokenService.getToken(conversation.systemMessage) + TokenService.getToken(value.text) >= TokenService.getTokenLimit() ?
-                                  Theme.of(context).colorScheme.error :
-                                  null
-                              )
-                            ),
-                            const SizedBox(width: 8),
-                            Text('History: ${TokenService.getEffectiveMessagesToken(conversation, value.text)}',
-                              style: const TextStyle(fontSize: 12)
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
+            PopupMenuButton(
+              icon: const Icon(Icons.more_vert),
+              itemBuilder: (context) {
+                return const [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Text('Edit'),
                   ),
-                );
-              }
+                  PopupMenuItem(
+                    value: 'clear',
+                    child: Text('Clear conversation'),
+                  ),
+                ];
+              },
+              onSelected: (value) async {
+                switch (value) {
+                  case 'edit':
+                    var newConversation = await showConversationDialog(context, true, conversation);
+                    if (newConversation != null) {
+                      conversation.lastUpdated = DateTime.now();
+                      await chatService.updateConversation(newConversation);
+                      chatBloc.add(ChatLastUpdatedChanged(conversation, conversation.lastUpdated));
+                      conversationsBloc.add(const ConversationsRequested());
+                    }
+                    break;
+                  case 'clear':
+                    var result = await showClearConfirmDialog(context);
+                    if (result == true) {
+                      conversation.messages = [];
+                      conversation.lastUpdated = DateTime.now();
+                      await chatService.updateConversation(conversation);
+                      chatBloc.add(ChatLastUpdatedChanged(conversation, conversation.lastUpdated));
+                      conversationsBloc.add(const ConversationsRequested());
+                    }
+                    break;
+                  default:
+                    break;
+                }
+              },
             ),
-            // chat input
-            Container(
-              padding: const EdgeInsets.only(left: 12, top: 4, bottom: 8),
-              alignment: Alignment.centerRight,
-              child: Row(
-                children: [
-                  Expanded(
+          ]
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // system message
+              if(_showSystemMessage) Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SelectableText(conversation.systemMessage, maxLines: 5)
+                    )
+                  ],
+                )
+              ),
+              // loading indicator
+              if (state.status == ChatStatus.loading)
+                const LinearProgressIndicator(),
+              // chat messages
+              Flexible(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: conversation.messages.length,
+                  itemBuilder: (context, index) {
+                    return ChatMessageWidget(message: conversation.messages[index]);
+                  },
+                )
+              ),
+              // status bar
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _textEditingController,
+                builder: (context, value, child) {
+                  return SizedBox(
+                    height: 24,
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: Color.lerp(Theme.of(context).colorScheme.background, Colors.white, 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.only(left: 8),
+                      padding: const EdgeInsets.only(left: 16),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: TextField(
-                              decoration: const InputDecoration(
-                                hintText: 'Message',
-                                border: InputBorder.none
-                              ),
-                              controller: _textEditingController,
-                              focusNode: _focusNode,
-                              minLines: 1,
-                              maxLines: 3,
-                              onSubmitted: (value) async { },
-                            ),
+                          Row(
+                            children: [
+                              Icon(Icons.history, size: 16, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text('${min(TokenService.getEffectiveMessages(conversation, value.text).length, LocalStorageService().historyCount)}/${LocalStorageService().historyCount}',
+                                style: const TextStyle(fontSize: 12)
+                              )
+                            ],
                           ),
-                          ValueListenableBuilder<TextEditingValue>(
-                            valueListenable: _textEditingController,
-                            builder: (context, value, child) {
-                              return IconButton(
-                                icon: const Icon(Icons.send),
-                                color: TokenService.getToken(conversation.systemMessage) + TokenService.getToken(value.text) >= TokenService.getTokenLimit() ?
+                          const SizedBox(width: 20),
+                          Row(
+                            children: [
+                              Icon(Icons.translate, size: 16, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text('System: ${TokenService.getToken(conversation.systemMessage)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: TokenService.getToken(conversation.systemMessage) >= TokenService.getTokenLimit() ?
                                   Theme.of(context).colorScheme.error :
-                                  null,
-                                onPressed: (state.status == ChatStatus.loading) || (value.text.isEmpty || value.text.trim().isEmpty)
-                                  ? null
-                                  : () => handleSend(context, conversation)
-                              );
-                            }
-                          ),
+                                  null
+                                )
+                              ),
+                              const SizedBox(width: 8),
+                              Text('Input: ${TokenService.getToken(value.text)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: TokenService.getToken(conversation.systemMessage) + TokenService.getToken(value.text) >= TokenService.getTokenLimit() ?
+                                  Theme.of(context).colorScheme.error :
+                                  null
+                                )
+                              ),
+                              const SizedBox(width: 8),
+                              Text('History: ${TokenService.getEffectiveMessagesToken(conversation, value.text)}',
+                                style: const TextStyle(fontSize: 12)
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     ),
-                  ),
-
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: (state.status == ChatStatus.loading) || (conversation.messages.isEmpty)
-                      ? null
-                      : () => handleRefresh(context, conversation)
-                  )
-                ],
+                  );
+                }
+              ),
+              // chat input
+              Container(
+                padding: const EdgeInsets.only(left: 12, top: 4, bottom: 8),
+                alignment: Alignment.centerRight,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color.lerp(Theme.of(context).colorScheme.background, Colors.white, 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                decoration: const InputDecoration(
+                                  hintText: 'Send a message...',
+                                  border: InputBorder.none
+                                ),
+                                controller: _textEditingController,
+                                focusNode: _focusNode,
+                                minLines: 1,
+                                maxLines: 3,
+                                onSubmitted: (value) async { },
+                              ),
+                            ),
+                            ValueListenableBuilder<TextEditingValue>(
+                              valueListenable: _textEditingController,
+                              builder: (context, value, child) {
+                                return IconButton(
+                                  icon: const Icon(Icons.send),
+                                  color: TokenService.getToken(conversation.systemMessage) + TokenService.getToken(value.text) >= TokenService.getTokenLimit() ?
+                                  Theme.of(context).colorScheme.error :
+                                  null,
+                                  onPressed: (state.status == ChatStatus.loading) || (value.text.isEmpty || value.text.trim().isEmpty)
+                                    ? null
+                                    : () => handleSend(context, conversation)
+                                );
+                              }
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: (state.status == ChatStatus.loading) || (conversation.messages.isEmpty)
+                        ? null
+                        : () => handleRefresh(context, conversation)
+                    )
+                  ],
+                )
               )
-            )
-          ]
+            ]
+          )
         )
-      )
+      ),
     );
   }
 

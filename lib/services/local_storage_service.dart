@@ -1,5 +1,6 @@
-import 'package:flutter_chat/models/chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/models.dart';
 
 class LocalStorageService {
   static final LocalStorageService _instance = LocalStorageService._internal();

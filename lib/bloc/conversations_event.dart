@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../models/models.dart';
 
 abstract class ConversationsEvent extends Equatable {
