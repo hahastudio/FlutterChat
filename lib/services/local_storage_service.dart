@@ -19,6 +19,7 @@ class LocalStorageService {
   static const prefApiHost = 'pref_apiHost';
   static const prefModel = 'pref_model';
   static const prefHistoryCount = 'pref_historyCount';
+  static const prefRenderMode = 'pref_renderMode';
 
   static const storeConversationList = 'store_conversations';
   static const storeConversationPrefix = 'store_conversation_';
@@ -67,6 +68,14 @@ class LocalStorageService {
   set historyCount(int value) {
     (() async {
       await _prefs.setInt(prefHistoryCount, value);
+    })();
+  }
+
+  String get renderMode => _prefs.getString(prefRenderMode) ?? 'markdown';
+
+  set renderMode(String value) {
+    (() async {
+      await _prefs.setString(prefRenderMode, value);
     })();
   }
 

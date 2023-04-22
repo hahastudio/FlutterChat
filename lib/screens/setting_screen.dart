@@ -19,6 +19,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String apiHost = LocalStorageService().apiHost;
   String model = LocalStorageService().model;
   int historyCount = LocalStorageService().historyCount;
+  String renderMode = LocalStorageService().renderMode;
 
   final _textFieldController = TextEditingController();
 
@@ -53,6 +54,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return 'sk-...' + LocalStorageService().apiKey.substring(
         LocalStorageService().apiKey.length - 4, LocalStorageService().apiKey.length
     );
+  }
+
+  String getRenderModeDescription(String renderMode) {
+    if (renderMode == 'markdown')
+      return 'Markdown';
+    if (renderMode == 'text')
+      return 'Plain Text';
+    return 'Unknown';
   }
 
   @override
@@ -191,6 +200,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     LocalStorageService().historyCount = intValue;
                     setState(() {
                       historyCount = intValue;
+                    });
+                  },
+                ),
+              ),
+            ]
+          ),
+          SettingsSection(
+            title: const Text('Appearance'),
+            tiles: <SettingsTile>[
+              SettingsTile(
+                leading: const Icon(Icons.text_format),
+                title: const Text('Render Mode'),
+                value: Text(getRenderModeDescription(LocalStorageService().renderMode)),
+                trailing: PopupMenuButton(
+                  icon: const Icon(Icons.more_vert),
+                  itemBuilder: (context) {
+                    return const [
+                      PopupMenuItem(
+                        value: 'markdown',
+                        child: Text('Markdown'),
+                      ),
+                      PopupMenuItem(
+                        value: 'text',
+                        child: Text('Plain Text'),
+                      )
+                    ];
+                  },
+                  onSelected: (value) async {
+                    LocalStorageService().renderMode = value;
+                    setState(() {
+                      renderMode = value;
                     });
                   },
                 ),

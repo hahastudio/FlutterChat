@@ -6,8 +6,9 @@ import '../models/models.dart';
 
 class ChatMessageWidget extends StatefulWidget {
   final ConversationMessage message;
+  final bool isMarkdown;
 
-  const ChatMessageWidget({super.key, required this.message});
+  const ChatMessageWidget({super.key, required this.message, this.isMarkdown = true});
 
   @override
   State<ChatMessageWidget> createState() => _ChatMessageWidgetState();
@@ -20,7 +21,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(10),
-      color: widget.message.role == 'user'?
+      color: widget.message.role == 'user' ?
         Color.lerp(Theme.of(context).colorScheme.background, Colors.white, 0.1)
         : Color.lerp(Theme.of(context).colorScheme.background, Colors.white, 0.2),
       child: Row(
@@ -53,7 +54,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: MarkdownBody(data: widget.message.content, selectable: true)
+            child: widget.isMarkdown ?
+              MarkdownBody(data: widget.message.content, selectable: true)
+              : SelectableText(widget.message.content)
           )
         ],
       )

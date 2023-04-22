@@ -143,6 +143,7 @@ class _ChatScreenState extends State<ChatScreen> {
     var chatService = context.read<ChatService>();
     var chatBloc = BlocProvider.of<ChatBloc>(context);
     var conversationsBloc = BlocProvider.of<ConversationsBloc>(context);
+    var isMarkdown = LocalStorageService().renderMode == 'markdown';
 
     if (state.status == ChatStatus.failure) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -244,7 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       if ((state.status == ChatStatus.loading) && (index == conversation.messages.length))
                         return const SizedBox(height: 60);
                       else
-                        return ChatMessageWidget(message: conversation.messages[index]);
+                        return ChatMessageWidget(message: conversation.messages[index], isMarkdown: isMarkdown);
                     },
                   )
                 )
