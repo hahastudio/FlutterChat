@@ -105,8 +105,8 @@ class _ChatScreenState extends State<ChatScreen> {
     chatService.getResponseStreamFromServer(conversation).listen((conversation) {
       BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 400),
+        _scrollController.position.maxScrollExtent - 10,
+        duration: const Duration(milliseconds: 200),
         curve: Curves.fastOutSlowIn
       );
     },
@@ -125,8 +125,8 @@ class _ChatScreenState extends State<ChatScreen> {
     chatService.getResponseStreamFromServer(conversation).listen((conversation) {
       BlocProvider.of<ChatBloc>(context).add(ChatStreaming(conversation, conversation.lastUpdated));
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 400),
+        _scrollController.position.maxScrollExtent - 10,
+        duration: const Duration(milliseconds: 200),
         curve: Curves.fastOutSlowIn
       );
     },
@@ -233,13 +233,20 @@ class _ChatScreenState extends State<ChatScreen> {
               if (state.status == ChatStatus.loading)
                 const LinearProgressIndicator(),
               // chat messages
-              Flexible(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: conversation.messages.length,
-                  itemBuilder: (context, index) {
-                    return ChatMessageWidget(message: conversation.messages[index]);
-                  },
+              Expanded(
+                child: ScrollConfiguration(
+                  behavior: const ScrollBehavior(),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    physics: (state.status == ChatStatus.loading) ? const NeverScrollableScrollPhysics() : null,
+                    itemCount: (state.status == ChatStatus.loading) ? conversation.messages.length + 1 : conversation.messages.length,
+                    itemBuilder: (context, index) {
+                      if ((state.status == ChatStatus.loading) && (index == conversation.messages.length))
+                        return const SizedBox(height: 60);
+                      else
+                        return ChatMessageWidget(message: conversation.messages[index]);
+                    },
+                  )
                 )
               ),
               // status bar
