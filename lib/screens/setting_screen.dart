@@ -144,6 +144,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Text('gpt-3.5-turbo'),
                       ),
                       PopupMenuItem(
+                        value: 'gpt-3.5-turbo-16k',
+                        child: Text('gpt-3.5-turbo-16k'),
+                      ),
+                      PopupMenuItem(
                         value: 'gpt-4',
                         child: Text('gpt-4'),
                       ),

@@ -16,7 +16,7 @@ A new Flutter project which communicates with [OpenAI API](https://platform.open
 - Support [requesting organization](https://platform.openai.com/docs/api-reference/requesting-organization)
 - Support [system message](https://platform.openai.com/docs/guides/chat/introduction)
 - Support [streaming message](https://platform.openai.com/docs/api-reference/chat/create#chat/create-stream) like ChatGPT
-- Support to choose GPT models (gpt-3.5-turbo, gpt-4, gpt-4-32k)
+- Support to choose GPT models (gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4, gpt-4-32k)
 - Support to limit the count of conversation history when sending
 - Support to show token usage in real time
 - Support customized API Host
